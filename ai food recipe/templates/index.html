@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Food Recipe Preparation and Recommendation System - Home{% endblock %}
+
+{% block content %}
+<!-- ========================================================
+     Hero Section with AI Search Box
+     ======================================================== -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center justify-content-center text-center">
+            <div class="col-lg-10 col-xl-9">
+                <span class="badge bg-white text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-semibold mb-3 shadow-sm">
+                    <i class="fa-solid fa-sparkles text-warning me-1"></i> Powered by Google Gemini AI
+                </span>
+                <h1 class="hero-title mb-3">
+                    Discover, Cook & Savor <br>
+                    <span style="color: var(--primary-color);">AI-Crafted Culinary Magic</span>
+                </h1>
+                <p class="hero-subtitle mb-4 col-md-10 mx-auto">
+                    Type any dish name or list of ingredients. Our smart AI generates precise ingredient quantities, step-by-step masterchef instructions, nutritional facts, and cooking times instantly.
+                </p>
+
+                <!-- Search Card -->
+                <div class="search-box-card text-start mx-auto col-lg-11">
+                    <form action="{{ url_for('search_recipe') }}" method="POST">
+                        <div class="search-input-group mb-3">
+                            <i class="fa-solid fa-utensils"></i>
+                            <input type="text" name="query" class="form-control search-input" placeholder="Search any food recipe (e.g. Chicken Biryani, Masala Dosa, Paneer Butter Masala...)" required autocomplete="off">
+                        </div>
+
+                        <!-- Filter Row -->
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-3 col-6">
+                                <label class="form-label small text-muted fw-semibold mb-1">CATEGORY</label>
+                                <select name="category" class="form-select form-select-sm rounded-3 py-2">
+                                    <option value="">All Categories</option>
+                                    <option value="Breakfast">Breakfast</option>
+                                    <option value="Lunch">Lunch</option>
+                                    <option value="Dinner">Dinner</option>
+                                    <option value="Snacks">Snacks</option>
+                                    <option value="Desserts">Desserts</option>
+                                    <option value="Beverages">Beverages</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label class="form-label small text-muted fw-semibold mb-1">DIETARY TYPE</label>
+                                <select name="diet_type" class="form-select form-select-sm rounded-3 py-2">
+                                    <option value="">Any Diet</option>
+                                    <option value="Veg">Vegetarian 🟢</option>
+                                    <option value="Non-Veg">Non-Veg 🔴</option>
+                                    <option value="Vegan">Vegan 🌱</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <label class="form-label small text-muted fw-semibold mb-1">COOKING TIME</label>
+                                <select name="time_filter" class="form-select form-select-sm rounded-3 py-2">
+                                    <option value="">Any Duration</option>
+                                    <option value="Under 20 Mins">Under 20 Mins ⚡</option>
+                                    <option value="Under 40 Mins">Under 40 Mins</option>
+                                    <option value="Under 60 Mins">Under 60 Mins</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-6 d-flex align-items-end">
+                                <button type="submit" class="btn btn-search-ai w-100 justify-content-center">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>AI Recipe</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Quick Suggestion Tags & Recent Searches -->
+                    <div class="quick-tags">
+                        <span class="small fw-bold text-muted"><i class="fa-solid fa-fire text-danger me-1"></i> Popular Searches:</span>
+                        {% for tag in recent_searches %}
+                            <a href="{{ url_for('search_recipe', q=tag) }}" class="quick-tag-pill">
+                                {{ tag }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================
+     Food Categories Grid
+     ======================================================== -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h6 class="text-uppercase text-danger fw-bold letter-spacing-1 mb-1">Curated Cuisines</h6>
+                <h3 class="fw-bold mb-0">Browse by Category</h3>
+            </div>
+            <a href="{{ url_for('categories_list') }}" class="btn btn-sm btn-outline-dark rounded-pill px-3 fw-semibold">
+                View All <i class="fa-solid fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for cat in categories %}
+            <div class="col-lg-2 col-md-4 col-6">
+                <a href="{{ url_for('view_category', cat_name=cat.name) }}" class="category-card">
+                    <img src="{{ cat.image }}" alt="{{ cat.name }}">
+                    <div class="category-card-content">
+                        <h5><i class="fa-solid {{ cat.icon }} me-1"></i> {{ cat.name }}</h5>
+                        <p class="text-truncate">{{ cat.desc }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================
+     Popular Recipes
+     ======================================================== -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h6 class="text-uppercase text-danger fw-bold letter-spacing-1 mb-1">Chef's Favorites</h6>
+                <h3 class="fw-bold mb-0">Most Popular Recipes</h3>
+            </div>
+            <span class="text-muted small d-none d-md-block">Ranked by cooking community views</span>
+        </div>
+
+        <div class="row g-4">
+            {% for recipe in popular_recipes %}
+            <div class="col-lg-4 col-md-6">
+                <div class="recipe-card">
+                    <div class="card-img-wrap">
+                        <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" loading="lazy">
+                        <div class="card-badges">
+                            <span class="category-badge">{{ recipe.category }}</span>
+                            <span class="diet-badge {{ recipe.diet_type.lower() }}">
+                                {% if recipe.diet_type == 'Veg' %}
+                                    <i class="fa-solid fa-circle" style="color: #10b981; font-size: 8px;"></i> Veg
+                                {% elif recipe.diet_type == 'Non-Veg' %}
+                                    <i class="fa-solid fa-circle" style="color: #ef4444; font-size: 8px;"></i> Non-Veg
+                                {% else %}
+                                    <i class="fa-solid fa-leaf" style="color: #06b6d4; font-size: 10px;"></i> Vegan
+                                {% endif %}
+                            </span>
+                        </div>
+                        <button class="card-fav-btn {% if recipe.id in user_fav_ids %}active{% endif %}" data-recipe-id="{{ recipe.id }}" title="Add to Favourites">
+                            <i class="{% if recipe.id in user_fav_ids %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="recipe-card-body">
+                        <h4 class="recipe-title">
+                            <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="text-dark">
+                                {{ recipe.title }}
+                            </a>
+                        </h4>
+                        <p class="recipe-desc">{{ recipe.description }}</p>
+                        
+                        <div class="recipe-meta">
+                            <span><i class="fa-regular fa-clock me-1 text-danger"></i> {{ recipe.total_time }} mins</span>
+                            <span><i class="fa-solid fa-gauge me-1 text-warning"></i> {{ recipe.difficulty }}</span>
+                            <span><i class="fa-solid fa-users me-1 text-info"></i> Serves {{ recipe.servings }}</span>
+                        </div>
+                        <div class="mt-3 pt-2">
+                            <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-semibold">
+                                View Full Recipe <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================
+     Recommended Recipes Section
+     ======================================================== -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h6 class="text-uppercase text-danger fw-bold letter-spacing-1 mb-1">AI Recommendation Engine</h6>
+                <h3 class="fw-bold mb-0">Recommended for You</h3>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for recipe in recommended_recipes %}
+            <div class="col-lg-3 col-md-6">
+                <div class="recipe-card">
+                    <div class="card-img-wrap" style="height: 180px;">
+                        <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" loading="lazy">
+                        <div class="card-badges">
+                            <span class="diet-badge {{ recipe.diet_type.lower() }}">{{ recipe.diet_type }}</span>
+                        </div>
+                        <button class="card-fav-btn {% if recipe.id in user_fav_ids %}active{% endif %}" data-recipe-id="{{ recipe.id }}" title="Add to Favourites">
+                            <i class="{% if recipe.id in user_fav_ids %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="recipe-card-body">
+                        <span class="text-muted small fw-bold text-uppercase">{{ recipe.category }}</span>
+                        <h5 class="recipe-title mt-1" style="font-size: 1.05rem;">
+                            <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="text-dark">
+                                {{ recipe.title }}
+                            </a>
+                        </h5>
+                        <div class="recipe-meta mt-2 pt-2">
+                            <span><i class="fa-regular fa-clock me-1 text-danger"></i> {{ recipe.total_time }}m</span>
+                            <span><i class="fa-solid fa-fire text-warning me-1"></i> {{ recipe.nutrition_dict.calories }} kcal</span>
+                        </div>
+                        <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="btn btn-light btn-sm w-100 mt-2 rounded-pill fw-semibold border">
+                            Cook Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ========================================================
+     System Features & Highlights
+     ======================================================== -->
+<section class="py-5 bg-white border-top">
+    <div class="container">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <h6 class="text-uppercase text-danger fw-bold mb-1">Why Choose Our Platform</h6>
+            <h2 class="fw-bold">Smart Kitchen Assistant Powered by AI</h2>
+            <p class="text-muted">Designed for food lovers, amateur cooks, and culinary students.</p>
+        </div>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 border bg-light h-100">
+                    <div class="stat-pill-icon mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                        <i class="fa-solid fa-brain text-danger"></i>
+                    </div>
+                    <h5 class="fw-bold">Google Gemini AI Engine</h5>
+                    <p class="text-muted small mb-0">
+                        Ask for any cuisine in the world. Gemini AI crafts instant, precise ingredient proportions and culinary instructions customized to your dietary needs.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 border bg-light h-100">
+                    <div class="stat-pill-icon mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem; background-color: #dcfce7; color: #10b981;">
+                        <i class="fa-solid fa-stopwatch text-success"></i>
+                    </div>
+                    <h5 class="fw-bold">Interactive Cooking Timer</h5>
+                    <p class="text-muted small mb-0">
+                        Built-in audio countdown timers for each recipe. Keep track of dum cooking, boiling, roasting, and sautéing without burnt pans!
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 border bg-light h-100">
+                    <div class="stat-pill-icon mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem; background-color: #e0f2fe; color: #0284c7;">
+                        <i class="fa-solid fa-heart-pulse text-info"></i>
+                    </div>
+                    <h5 class="fw-bold">Macro Nutrition Breakdown</h5>
+                    <p class="text-muted small mb-0">
+                        Stay health-conscious with accurate nutritional estimates for calories, protein, carbohydrates, dietary fiber, and healthy fats.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ recipe.title }} - AI Recipe Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3 no-print">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('view_category', cat_name=recipe.category) }}" class="text-decoration-none">{{ recipe.category }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ recipe.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- ========================================================
+         Recipe Header & Hero Image
+         ======================================================== -->
+    <div class="recipe-header-hero mb-4">
+        <div class="recipe-hero-img-wrap">
+            <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}" id="recipeHeroImage">
+            <div class="recipe-hero-overlay">
+                <div class="d-flex flex-wrap gap-2 mb-2 no-print">
+                    <span class="category-badge">{{ recipe.category }}</span>
+                    <span class="diet-badge {{ recipe.diet_type.lower() }}">
+                        {% if recipe.diet_type == 'Veg' %}
+                            <i class="fa-solid fa-circle" style="color: #10b981; font-size: 8px;"></i> Vegetarian
+                        {% elif recipe.diet_type == 'Non-Veg' %}
+                            <i class="fa-solid fa-circle" style="color: #ef4444; font-size: 8px;"></i> Non-Vegetarian
+                        {% else %}
+                            <i class="fa-solid fa-leaf" style="color: #06b6d4; font-size: 10px;"></i> Vegan
+                        {% endif %}
+                    </span>
+                    <span class="badge bg-warning text-dark fw-bold rounded-pill">
+                        <i class="fa-solid fa-gauge-simple me-1"></i> {{ recipe.difficulty }}
+                    </span>
+                    {% if recipe.source == 'gemini_ai' %}
+                    <span class="badge bg-info text-dark fw-bold rounded-pill">
+                        <i class="fa-solid fa-robot me-1"></i> Gemini AI Verified
+                    </span>
+                    {% endif %}
+                </div>
+                <h1 class="display-5 fw-bold mb-2">{{ recipe.title }}</h1>
+                <p class="lead mb-0 text-white-50 d-none d-md-block" style="max-width: 800px;">
+                    {{ recipe.description }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         Quick Stats & Action Buttons Bar
+         ======================================================== -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="recipe-detail-stat-pill">
+                <div class="stat-pill-icon">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold">Prep Time</div>
+                    <div class="fw-bold fs-5">{{ recipe.prep_time }} mins</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="recipe-detail-stat-pill">
+                <div class="stat-pill-icon" style="background-color: #fee2e2; color: #ef4444;">
+                    <i class="fa-solid fa-fire-burner"></i>
+                </div>
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold">Cook Time</div>
+                    <div class="fw-bold fs-5">{{ recipe.cook_time }} mins</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="recipe-detail-stat-pill">
+                <div class="stat-pill-icon" style="background-color: #fef3c7; color: #d97706;">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold">Total Time</div>
+                    <div class="fw-bold fs-5">{{ recipe.total_time }} mins</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="recipe-detail-stat-pill">
+                <div class="stat-pill-icon" style="background-color: #e0e7ff; color: #4f46e5;">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div>
+                    <div class="text-muted small text-uppercase fw-semibold">Servings</div>
+                    <div class="fw-bold fs-5">{{ recipe.servings }} People</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar (Print, Kitchen Timer, Favourite) -->
+    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center p-3 bg-white rounded-3 border mb-4 no-print shadow-sm">
+        <div class="d-flex flex-wrap gap-2">
+            <!-- Kitchen Timer Button -->
+            <button class="btn btn-outline-danger fw-semibold d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#kitchenTimerModal">
+                <i class="fa-solid fa-stopwatch"></i>
+                <span>Kitchen Timer ({{ recipe.cook_time }}m)</span>
+            </button>
+
+            <!-- Print Recipe Button -->
+            <button class="btn btn-outline-secondary fw-semibold d-flex align-items-center gap-2" onclick="window.print()">
+                <i class="fa-solid fa-print"></i>
+                <span>Print Recipe</span>
+            </button>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Favourite Toggle Button -->
+            {% if logged_in %}
+                <button class="btn {% if is_favourite %}btn-danger text-white{% else %}btn-outline-danger{% endif %} fw-semibold recipe-fav-btn d-flex align-items-center gap-2" data-recipe-id="{{ recipe.id }}">
+                    <i class="{% if is_favourite %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                    <span>{% if is_favourite %}Saved in Favourites{% else %}Add to Favourites{% endif %}</span>
+                </button>
+            {% else %}
+                <a href="{{ url_for('login', next=request.path) }}" class="btn btn-outline-danger fw-semibold d-flex align-items-center gap-2">
+                    <i class="fa-regular fa-heart"></i>
+                    <span>Login to Favourite</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ========================================================
+         Main Content: Ingredients (Left) & Instructions (Right)
+         ======================================================== -->
+    <div class="row g-4">
+        <!-- Ingredients Column -->
+        <div class="col-lg-5">
+            <div class="bg-white p-4 rounded-4 border shadow-sm mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">
+                        <i class="fa-solid fa-basket-shopping text-danger me-2"></i> Ingredients
+                    </h4>
+                    <span class="badge bg-light text-dark border px-2 py-1 small fw-semibold">
+                        {{ recipe.ingredients_list|length }} items
+                    </span>
+                </div>
+                <p class="text-muted small mb-3">Check off ingredients as you prepare them in your kitchen:</p>
+
+                <!-- Ingredient Checklist Controls -->
+                <div class="d-flex justify-content-between mb-3 no-print">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-3" id="btnSelectAllIngredients">
+                        <i class="fa-regular fa-square-check me-1"></i> Check All
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-3" id="btnCopyIngredients">
+                        <i class="fa-regular fa-copy me-1"></i> Copy List
+                    </button>
+                </div>
+
+                <!-- Ingredient Items -->
+                <div class="ingredient-list">
+                    {% for item in recipe.ingredients_list %}
+                    <div class="ingredient-item">
+                        <input type="checkbox" class="ingredient-checkbox" id="ing_{{ loop.index }}">
+                        <label for="ing_{{ loop.index }}" class="ingredient-text mb-0 flex-grow-1">
+                            {{ item }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Nutritional Facts Card -->
+            <div class="nutrition-card shadow-sm mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-chart-pie text-warning me-2"></i> Nutritional Info
+                    </h5>
+                    <span class="badge bg-warning text-dark fw-bold">Per Serving</span>
+                </div>
+                <div class="nutrition-grid">
+                    <div class="nutrition-cell">
+                        <div class="nutrition-val">{{ recipe.nutrition_dict.calories or '350' }}</div>
+                        <div class="nutrition-label">Calories (kcal)</div>
+                    </div>
+                    <div class="nutrition-cell">
+                        <div class="nutrition-val">{{ recipe.nutrition_dict.protein or '12g' }}</div>
+                        <div class="nutrition-label">Protein</div>
+                    </div>
+                    <div class="nutrition-cell">
+                        <div class="nutrition-val">{{ recipe.nutrition_dict.carbs or '45g' }}</div>
+                        <div class="nutrition-label">Carbohydrates</div>
+                    </div>
+                    <div class="nutrition-cell">
+                        <div class="nutrition-val">{{ recipe.nutrition_dict.fats or '14g' }}</div>
+                        <div class="nutrition-label">Total Fats</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chef Pro Tips -->
+            {% if recipe.chef_tips %}
+            <div class="p-4 rounded-4 bg-warning bg-opacity-10 border border-warning-subtle shadow-sm mb-4">
+                <h5 class="fw-bold text-dark mb-2">
+                    <i class="fa-solid fa-lightbulb text-warning me-2"></i> Chef's Secret Tip
+                </h5>
+                <p class="text-dark small mb-0 fst-italic">
+                    "{{ recipe.chef_tips }}"
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Instructions Column -->
+        <div class="col-lg-7">
+            <div class="bg-white p-4 rounded-4 border shadow-sm mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0">
+                        <i class="fa-solid fa-list-check text-success me-2"></i> Step-by-Step Directions
+                    </h4>
+                    <span class="badge bg-light text-dark border px-2 py-1 small fw-semibold">
+                        {{ recipe.instructions_list|length }} Steps
+                    </span>
+                </div>
+                <p class="text-muted small mb-4">Follow along carefully to achieve the perfect texture and aroma:</p>
+
+                <!-- Steps List -->
+                <div class="instruction-steps-list">
+                    {% for step in recipe.instructions_list %}
+                    <div class="instruction-step">
+                        <div class="step-number">{{ loop.index }}</div>
+                        <div class="step-text flex-grow-1">
+                            {{ step }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Share & Search Another -->
+            <div class="p-4 bg-light rounded-4 border text-center no-print">
+                <h5 class="fw-bold mb-2">Craving something else?</h5>
+                <p class="text-muted small mb-3">Generate another instant custom recipe with Gemini AI in seconds.</p>
+                <button class="btn btn-danger rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#quickSearchModal" style="background-color: var(--primary-color); border:none;">
+                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Generate Another Recipe
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         Similar Recipes in the Same Category
+         ======================================================== -->
+    {% if similar_recipes %}
+    <div class="mt-5 no-print">
+        <h4 class="fw-bold mb-4">
+            <i class="fa-solid fa-bowl-food text-danger me-2"></i> You Might Also Like
+        </h4>
+        <div class="row g-4">
+            {% for sim in similar_recipes %}
+            <div class="col-md-4">
+                <div class="recipe-card">
+                    <div class="card-img-wrap" style="height: 180px;">
+                        <img src="{{ sim.image_url }}" alt="{{ sim.title }}">
+                        <div class="card-badges">
+                            <span class="category-badge">{{ sim.category }}</span>
+                            <span class="diet-badge {{ sim.diet_type.lower() }}">{{ sim.diet_type }}</span>
+                        </div>
+                    </div>
+                    <div class="recipe-card-body">
+                        <h5 class="recipe-title">
+                            <a href="{{ url_for('view_recipe', recipe_id=sim.id) }}" class="text-dark">
+                                {{ sim.title }}
+                            </a>
+                        </h5>
+                        <div class="recipe-meta">
+                            <span><i class="fa-regular fa-clock me-1 text-danger"></i> {{ sim.total_time }} mins</span>
+                            <a href="{{ url_for('view_recipe', recipe_id=sim.id) }}" class="text-danger fw-bold">View &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ========================================================
+     Kitchen Cooking Timer Modal
+     ======================================================== -->
+<div class="modal fade" id="kitchenTimerModal" tabindex="-1" aria-labelledby="kitchenTimerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-center">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="kitchenTimerModalLabel">
+                    <i class="fa-solid fa-stopwatch text-danger me-2"></i> Kitchen Cooking Timer
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-2">Preset for {{ recipe.title }} ({{ recipe.cook_time }} mins cook duration)</p>
+
+                <!-- Timer Countdown Clock -->
+                <div class="timer-display my-3" id="timerCountdownDisplay" data-default-minutes="{{ recipe.cook_time or 20 }}">
+                    {{ '%02d' % recipe.cook_time }}:00
+                </div>
+
+                <!-- Preset Quick Buttons -->
+                <div class="d-flex justify-content-center gap-2 mb-4">
+                    <button class="btn btn-sm btn-light border timer-preset-btn" data-minutes="5">5 Min</button>
+                    <button class="btn btn-sm btn-light border timer-preset-btn" data-minutes="10">10 Min</button>
+                    <button class="btn btn-sm btn-light border timer-preset-btn" data-minutes="{{ recipe.cook_time }}">Recipe ({{ recipe.cook_time }}m)</button>
+                    <button class="btn btn-sm btn-light border timer-preset-btn" data-minutes="30">30 Min</button>
+                </div>
+
+                <!-- Controls -->
+                <div class="d-flex justify-content-center gap-3">
+                    <button class="btn btn-success px-4 py-2 rounded-pill fw-bold" id="btnTimerStart">
+                        <i class="fa-solid fa-play me-1"></i> Start
+                    </button>
+                    <button class="btn btn-warning px-4 py-2 rounded-pill fw-bold" id="btnTimerPause" disabled>
+                        <i class="fa-solid fa-pause me-1"></i> Pause
+                    </button>
+                    <button class="btn btn-secondary px-3 py-2 rounded-pill fw-semibold" id="btnTimerReset">
+                        <i class="fa-solid fa-rotate-left me-1"></i> Reset
+                    </button>
+                    <button class="btn btn-outline-dark px-3 py-2 rounded-pill fw-semibold" id="btnTimerAddMin">
+                        +1 Min
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

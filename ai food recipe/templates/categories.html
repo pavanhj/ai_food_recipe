@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Categories - AI Food Recipe System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="text-center py-4 mb-4">
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-semibold mb-2">
+            <i class="fa-solid fa-layer-group me-1"></i> Culinary Discovery
+        </span>
+        <h2 class="display-6 fw-bold">Explore Recipes by Category</h2>
+        <p class="text-muted col-md-7 mx-auto">
+            From hearty breakfasts and wholesome lunch platters to royal evening dinners and decadent desserts, choose a category to find your perfect meal.
+        </p>
+    </div>
+
+    <!-- Category Grid -->
+    <div class="row g-4 mb-5">
+        {% for cat in categories %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 recipe-card">
+                <div class="position-relative" style="height: 220px;">
+                    <img src="{{ cat.image }}" alt="{{ cat.name }}" class="w-100 h-100 object-fit-cover">
+                    <div class="position-absolute top-0 start-0 m-3">
+                        <span class="badge bg-white text-dark shadow-sm py-2 px-3 rounded-pill fw-bold">
+                            <i class="fa-solid {{ cat.icon }} me-1" style="color: {{ cat.color }};"></i> {{ cat.name }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-4 d-flex flex-column">
+                    <h4 class="fw-bold mb-2">{{ cat.name }} Dishes</h4>
+                    <p class="text-muted small mb-4 flex-grow-1">{{ cat.desc }}</p>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('view_category', cat_name=cat.name) }}" class="btn btn-outline-danger w-100 rounded-pill fw-semibold">
+                            Explore {{ cat.name }} <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- AI Category Prompt Box -->
+    <div class="p-4 p-md-5 rounded-4 border bg-white shadow-sm text-center">
+        <div class="stat-pill-icon mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem;">
+            <i class="fa-solid fa-wand-magic-sparkles text-danger"></i>
+        </div>
+        <h3 class="fw-bold mb-2">Can't find a specific category?</h3>
+        <p class="text-muted col-md-6 mx-auto mb-4">
+            Type any regional style, specialty diet, or global cuisine (e.g. Keto, Mediterranean, Thai, Mughlai) into Gemini AI.
+        </p>
+        <button class="btn btn-danger py-2.5 px-4 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#quickSearchModal" style="background-color: var(--primary-color); border:none;">
+            <i class="fa-solid fa-sparkles me-1"></i> Generate Custom Recipe
+        </button>
+    </div>
+
+</div>
+{% endblock %}

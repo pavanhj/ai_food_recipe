@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Search History - AI Food Recipe System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 mb-4 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Your Recipe Search History
+            </h2>
+            <p class="text-muted small mb-0">Track previous culinary queries and search again with one click</p>
+        </div>
+        {% if history_items %}
+        <form action="{{ url_for('clear_all_history') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear your entire search history?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
+                <i class="fa-solid fa-trash-can me-1"></i> Clear Entire History
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if history_items %}
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Searched Dish / Ingredient</th>
+                        <th>Category Filter</th>
+                        <th>Diet Preference</th>
+                        <th>Date & Time</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history_items %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold text-dark fs-6">{{ item.query }}</div>
+                        </td>
+                        <td>
+                            {% if item.category_filter %}
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">
+                                    {{ item.category_filter }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">Any</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.diet_filter == 'Veg' %}
+                                <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1">Vegetarian 🟢</span>
+                            {% elif item.diet_filter == 'Non-Veg' %}
+                                <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1">Non-Veg 🔴</span>
+                            {% elif item.diet_filter == 'Vegan' %}
+                                <span class="badge bg-info-subtle text-info rounded-pill px-2.5 py-1">Vegan 🌱</span>
+                            {% else %}
+                                <span class="text-muted small">Any</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small text-muted">
+                                <i class="fa-regular fa-calendar-days me-1"></i>
+                                {{ item.searched_at }}
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('search_recipe', q=item.query, category=item.category_filter or '', diet_type=item.diet_filter or '') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i> Search Again
+                                </a>
+                                <form action="{{ url_for('delete_history_item', history_id=item.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-light border text-danger rounded-circle p-2" title="Delete">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5 my-5 bg-white rounded-4 border shadow-sm">
+        <div class="stat-pill-icon mx-auto mb-3" style="width: 70px; height: 70px; font-size: 2rem; background-color: #e0e7ff; color: #4338ca;">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <h4 class="fw-bold">No Search History Yet</h4>
+        <p class="text-muted col-md-6 mx-auto mb-4">
+            Whenever you search for recipes or generate dishes using Google Gemini AI, your queries will appear here so you can revisit them anytime.
+        </p>
+        <button class="btn btn-danger rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#quickSearchModal" style="background-color: var(--primary-color); border:none;">
+            <i class="fa-solid fa-magnifying-glass me-1"></i> Start Searching Recipes
+        </button>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60">
+  <defs>
+    <linearGradient id="chefGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff7a00" />
+      <stop offset="100%" stop-color="#e63946" />
+    </linearGradient>
+    <linearGradient id="sparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffb703" />
+      <stop offset="100%" stop-color="#fb8500" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon: Chef Hat with AI Sparkle -->
+  <g transform="translate(10, 5)">
+    <!-- Plate base -->
+    <ellipse cx="25" cy="46" rx="22" ry="5" fill="#f1faee" opacity="0.9" />
+    
+    <!-- Chef Hat -->
+    <path d="M 12 36 C 8 36 6 32 8 28 C 6 22 10 18 16 18 C 18 12 28 10 33 15 C 38 12 45 16 43 23 C 47 26 46 32 41 36 Z" 
+          fill="url(#chefGrad)" />
+    <!-- Hat band -->
+    <rect x="13" y="36" width="27" height="6" rx="3" fill="#d90429" />
+    <line x1="16" y1="39" x2="37" y2="39" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+    
+    <!-- AI Sparkle / Magic Star -->
+    <path d="M 42 12 Q 42 17 47 17 Q 42 17 42 22 Q 42 17 37 17 Q 42 17 42 12 Z" fill="url(#sparkleGrad)" />
+    <circle cx="48" cy="8" r="1.5" fill="#ffb703" />
+  </g>
+
+  <!-- Typography -->
+  <text x="68" y="29" font-family="'Poppins', 'Segoe UI', sans-serif" font-weight="800" font-size="20" fill="#1b4332">
+    RECIPE<tspan fill="#e63946">.AI</tspan>
+  </text>
+  <text x="69" y="44" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="9" fill="#6c757d" letter-spacing="1.2">
+    SMART CHEF PREPARATION
+  </text>
+</svg>

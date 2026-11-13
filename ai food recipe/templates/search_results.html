@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category_name }} Recipes - AI Food Recipe System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header & Filter Form -->
+    <div class="p-4 bg-white rounded-4 border shadow-sm mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-5">
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-semibold mb-1">
+                    Category Filter
+                </span>
+                <h2 class="fw-bold mb-1">{{ category_name }} Recipes</h2>
+                <p class="text-muted small mb-0">Found {{ recipes|length }} delicious dishes matching your criteria</p>
+            </div>
+            
+            <!-- Filters -->
+            <div class="col-lg-7">
+                <form action="{{ url_for('view_category', cat_name=category_name) }}" method="GET" class="row g-2 align-items-center justify-content-lg-end">
+                    <!-- Diet Filter -->
+                    <div class="col-sm-5 col-6">
+                        <label class="form-label small text-muted fw-semibold mb-1">DIETARY PREFERENCE</label>
+                        <select name="diet" class="form-select form-select-sm rounded-pill py-2" onchange="this.form.submit()">
+                            <option value="" {% if not selected_diet %}selected{% endif %}>All Diets</option>
+                            <option value="Veg" {% if selected_diet == 'Veg' %}selected{% endif %}>Vegetarian 🟢</option>
+                            <option value="Non-Veg" {% if selected_diet == 'Non-Veg' %}selected{% endif %}>Non-Veg 🔴</option>
+                            <option value="Vegan" {% if selected_diet == 'Vegan' %}selected{% endif %}>Vegan 🌱</option>
+                        </select>
+                    </div>
+
+                    <!-- Time Filter -->
+                    <div class="col-sm-5 col-6">
+                        <label class="form-label small text-muted fw-semibold mb-1">MAX COOKING TIME</label>
+                        <select name="max_time" class="form-select form-select-sm rounded-pill py-2" onchange="this.form.submit()">
+                            <option value="" {% if not selected_time %}selected{% endif %}>Any Time</option>
+                            <option value="20" {% if selected_time == 20 %}selected{% endif %}>⚡ Under 20 Mins</option>
+                            <option value="40" {% if selected_time == 40 %}selected{% endif %}>Under 40 Mins</option>
+                            <option value="60" {% if selected_time == 60 %}selected{% endif %}>Under 60 Mins</option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-2 col-12 d-flex align-items-end">
+                        {% if selected_diet or selected_time %}
+                        <a href="{{ url_for('view_category', cat_name=category_name) }}" class="btn btn-outline-secondary btn-sm w-100 rounded-pill py-2" title="Reset Filters">
+                            Reset
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recipe Cards Grid -->
+    {% if recipes %}
+    <div class="row g-4 mb-5">
+        {% for recipe in recipes %}
+        <div class="col-lg-4 col-md-6">
+            <div class="recipe-card">
+                <div class="card-img-wrap">
+                    <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}">
+                    <div class="card-badges">
+                        <span class="category-badge">{{ recipe.category }}</span>
+                        <span class="diet-badge {{ recipe.diet_type.lower() }}">
+                            {% if recipe.diet_type == 'Veg' %}
+                                <i class="fa-solid fa-circle" style="color: #10b981; font-size: 8px;"></i> Veg
+                            {% elif recipe.diet_type == 'Non-Veg' %}
+                                <i class="fa-solid fa-circle" style="color: #ef4444; font-size: 8px;"></i> Non-Veg
+                            {% else %}
+                                <i class="fa-solid fa-leaf" style="color: #06b6d4; font-size: 10px;"></i> Vegan
+                            {% endif %}
+                        </span>
+                    </div>
+                    <button class="card-fav-btn {% if recipe.id in user_fav_ids %}active{% endif %}" data-recipe-id="{{ recipe.id }}" title="Toggle Favourite">
+                        <i class="{% if recipe.id in user_fav_ids %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                    </button>
+                </div>
+                <div class="recipe-card-body">
+                    <h4 class="recipe-title">
+                        <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="text-dark">
+                            {{ recipe.title }}
+                        </a>
+                    </h4>
+                    <p class="recipe-desc">{{ recipe.description }}</p>
+                    
+                    <div class="recipe-meta">
+                        <span><i class="fa-regular fa-clock me-1 text-danger"></i> {{ recipe.total_time }} mins</span>
+                        <span><i class="fa-solid fa-gauge me-1 text-warning"></i> {{ recipe.difficulty }}</span>
+                        <span><i class="fa-solid fa-fire text-warning me-1"></i> {{ recipe.nutrition_dict.calories }} kcal</span>
+                    </div>
+                    <div class="mt-3 pt-2">
+                        <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="btn btn-outline-danger btn-sm w-100 rounded-pill fw-semibold">
+                            View Full Recipe <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty Filter State with AI Generation Prompt -->
+    <div class="text-center py-5 my-4 bg-white rounded-4 border shadow-sm">
+        <div class="stat-pill-icon mx-auto mb-3" style="width: 70px; height: 70px; font-size: 2rem;">
+            <i class="fa-solid fa-utensils text-danger"></i>
+        </div>
+        <h4 class="fw-bold">No {{ category_name }} Recipes Found with Current Filters</h4>
+        <p class="text-muted col-md-6 mx-auto mb-4">
+            We don't have a pre-saved recipe matching these exact filters yet. You can let Google Gemini AI generate an authentic new recipe right now!
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{{ url_for('view_category', cat_name=category_name) }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                Clear Filters
+            </a>
+            <button class="btn btn-danger rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#quickSearchModal" style="background-color: var(--primary-color); border:none;">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Generate with AI
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

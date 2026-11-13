@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Food Recipe Preparation & Recommendation System{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
+    
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Custom Gourmet CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- ========================================================
+         Navigation Bar
+         ======================================================== -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container">
+            <!-- Brand & Logo -->
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Recipe.AI Logo" height="42">
+            </a>
+
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMainContent" aria-controls="navbarMainContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars-staggered text-dark"></i>
+            </button>
+
+            <!-- Navigation Links -->
+            <div class="collapse navbar-collapse" id="navbarMainContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="fa-solid fa-house me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'categories_list' %}active{% endif %}" href="{{ url_for('categories_list') }}">
+                            <i class="fa-solid fa-layer-group me-1"></i> Categories
+                        </a>
+                    </li>
+                    {% if logged_in %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                            <i class="fa-solid fa-gauge-high me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'favourites' %}active{% endif %}" href="{{ url_for('favourites') }}">
+                            <i class="fa-solid fa-heart text-danger me-1"></i> Favourites
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'history' %}active{% endif %}" href="{{ url_for('history') }}">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i> History
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Right Side Actions & Authentication -->
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Quick AI Search Trigger -->
+                    <button class="btn btn-outline-secondary border-0 d-none d-md-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-light" data-bs-toggle="modal" data-bs-target="#quickSearchModal">
+                        <i class="fa-solid fa-magnifying-glass text-warning"></i>
+                        <span class="text-muted small">Search any recipe...</span>
+                        <kbd class="bg-white text-muted border px-1.5 py-0.5 rounded small">AI</kbd>
+                    </button>
+
+                    {% if logged_in %}
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle nav-btn d-flex align-items-center gap-2 border" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.8rem; font-weight: 700;">
+                                    {{ current_user.name[0].upper() }}
+                                </div>
+                                <span class="fw-semibold text-truncate" style="max-width: 120px;">{{ current_user.name.split()[0] }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                                <li>
+                                    <div class="dropdown-header">
+                                        <div class="fw-bold text-dark">{{ current_user.name }}</div>
+                                        <div class="text-muted small text-truncate">{{ current_user.email }}</div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('dashboard') }}">
+                                        <i class="fa-solid fa-user-circle me-2 text-primary"></i> My Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('favourites') }}">
+                                        <i class="fa-solid fa-heart me-2 text-danger"></i> My Favourites
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('history') }}">
+                                        <i class="fa-solid fa-history me-2 text-secondary"></i> Search History
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item py-2 text-danger" href="{{ url_for('logout') }}">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-dark nav-btn">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-danger nav-btn" style="background-color: var(--primary-color); border: none;">
+                            <i class="fa-solid fa-user-plus me-1"></i> Register
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========================================================
+         Flash Messages Alert Container
+         ======================================================== -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show shadow-sm d-flex align-items-center gap-2" role="alert">
+                        {% if category == 'success' %}
+                            <i class="fa-solid fa-circle-check fs-5 text-success"></i>
+                        {% elif category == 'danger' or category == 'error' %}
+                            <i class="fa-solid fa-circle-exclamation fs-5 text-danger"></i>
+                        {% elif category == 'warning' %}
+                            <i class="fa-solid fa-triangle-exclamation fs-5 text-warning"></i>
+                        {% else %}
+                            <i class="fa-solid fa-circle-info fs-5 text-info"></i>
+                        {% endif %}
+                        <div class="fw-medium">{{ message }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Block -->
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ========================================================
+         Quick AI Search Modal
+         ======================================================== -->
+    <div class="modal fade" id="quickSearchModal" tabindex="-1" aria-labelledby="quickSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="quickSearchModalLabel">
+                        <i class="fa-solid fa-wand-magic-sparkles text-warning me-2"></i> AI Recipe Generator
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form action="{{ url_for('search_recipe') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-muted small">WHAT WOULD YOU LIKE TO COOK?</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-utensils text-danger"></i></span>
+                                <input type="text" name="query" class="form-control border-start-0 py-2.5" placeholder="e.g., Paneer Tikka Masala, Lasagna, Dum Biryani..." required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold text-muted small">CATEGORY</label>
+                                <select name="category" class="form-select form-select-sm py-2">
+                                    <option value="">Any Category</option>
+                                    <option value="Breakfast">Breakfast</option>
+                                    <option value="Lunch">Lunch</option>
+                                    <option value="Dinner">Dinner</option>
+                                    <option value="Snacks">Snacks</option>
+                                    <option value="Desserts">Desserts</option>
+                                    <option value="Beverages">Beverages</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold text-muted small">DIET TYPE</label>
+                                <select name="diet_type" class="form-select form-select-sm py-2">
+                                    <option value="">Any Diet</option>
+                                    <option value="Veg">Vegetarian 🟢</option>
+                                    <option value="Non-Veg">Non-Vegetarian 🔴</option>
+                                    <option value="Vegan">Vegan 🌱</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger py-2.5 fw-bold rounded-3" style="background-color: var(--primary-color); border:none;">
+                                <i class="fa-solid fa-sparkles me-1"></i> Generate Instant Recipe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+         Footer
+         ======================================================== -->
+    <footer>
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="mb-3">
+                        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Logo" height="42" style="filter: brightness(0) invert(1);">
+                    </div>
+                    <p class="text-secondary small mb-3">
+                        An intelligent culinary preparation and recommendation platform powered by Google Gemini AI. Instantly generates precise ingredient lists, step-by-step instructions, and nutritional facts.
+                    </p>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-dark border border-secondary text-light py-1.5 px-2.5">
+                            <i class="fa-solid fa-database text-info me-1"></i> {{ db_status.engine }}
+                        </span>
+                        <span class="badge bg-dark border border-secondary text-light py-1.5 px-2.5">
+                            <i class="fa-solid fa-robot text-warning me-1"></i> {% if gemini_configured %}Gemini API Connected{% else %}Demo / Fallback Mode{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-bold mb-3">QUICK LINKS</h6>
+                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
+                        <li><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+                        <li><a href="{{ url_for('categories_list') }}" class="text-decoration-none">All Categories</a></li>
+                        <li><a href="{{ url_for('favourites') }}" class="text-decoration-none">Saved Favourites</a></li>
+                        <li><a href="{{ url_for('history') }}" class="text-decoration-none">Search History</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white fw-bold mb-3">POPULAR CATEGORIES</h6>
+                    <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
+                        <li><a href="{{ url_for('view_category', cat_name='Breakfast') }}" class="text-decoration-none">Breakfast & Crepes</a></li>
+                        <li><a href="{{ url_for('view_category', cat_name='Lunch') }}" class="text-decoration-none">Lunch & One-Pot Meals</a></li>
+                        <li><a href="{{ url_for('view_category', cat_name='Dinner') }}" class="text-decoration-none">Royal Dinners & Curries</a></li>
+                        <li><a href="{{ url_for('view_category', cat_name='Desserts') }}" class="text-decoration-none">Desserts & Confectionery</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white fw-bold mb-3">PROJECT INFORMATION</h6>
+                    <p class="small text-secondary mb-2">
+                        <strong>Project:</strong> BCA Final Year Project<br>
+                        <strong>Technology:</strong> Python Flask, MySQL, Gemini AI, Bootstrap 5, Jinja2<br>
+                        <strong>Architecture:</strong> MVC / REST AI Service
+                    </p>
+                    <div class="text-secondary small">
+                        Secure password hashing &bull; SQL Injection protection &bull; Responsive layout
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-secondary my-3">
+
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center small text-secondary">
+                <div>&copy; 2026 AI Food Recipe Preparation System. Built for BCA Final Year Demonstration.</div>
+                <div class="mt-2 mt-sm-0">
+                    <span class="text-white fw-semibold">Academic Project</span> &bull; All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom Application JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

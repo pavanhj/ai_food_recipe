@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}My Favourite Recipes - AI Food Recipe System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 pb-3 mb-4 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-heart text-danger me-2"></i> My Favourite Recipes
+            </h2>
+            <p class="text-muted small mb-0">Your hand-picked collection of delicious culinary recipes</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-semibold">
+                {{ recipes|length }} Saved Dishes
+            </span>
+            <a href="{{ url_for('categories_list') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+                <i class="fa-solid fa-plus me-1"></i> Discover More
+            </a>
+        </div>
+    </div>
+
+    {% if recipes %}
+    <div class="row g-4">
+        {% for recipe in recipes %}
+        <div class="col-lg-4 col-md-6" id="fav_card_{{ recipe.id }}">
+            <div class="recipe-card">
+                <div class="card-img-wrap">
+                    <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}">
+                    <div class="card-badges">
+                        <span class="category-badge">{{ recipe.category }}</span>
+                        <span class="diet-badge {{ recipe.diet_type.lower() }}">
+                            {% if recipe.diet_type == 'Veg' %}
+                                <i class="fa-solid fa-circle" style="color: #10b981; font-size: 8px;"></i> Veg
+                            {% elif recipe.diet_type == 'Non-Veg' %}
+                                <i class="fa-solid fa-circle" style="color: #ef4444; font-size: 8px;"></i> Non-Veg
+                            {% else %}
+                                <i class="fa-solid fa-leaf" style="color: #06b6d4; font-size: 10px;"></i> Vegan
+                            {% endif %}
+                        </span>
+                    </div>
+                    <!-- Direct remove/toggle button -->
+                    <button class="card-fav-btn active" data-recipe-id="{{ recipe.id }}" title="Remove from Favourites">
+                        <i class="fa-solid fa-heart text-danger"></i>
+                    </button>
+                </div>
+                <div class="recipe-card-body">
+                    <h4 class="recipe-title">
+                        <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="text-dark">
+                            {{ recipe.title }}
+                        </a>
+                    </h4>
+                    <p class="recipe-desc">{{ recipe.description }}</p>
+                    
+                    <div class="recipe-meta">
+                        <span><i class="fa-regular fa-clock me-1 text-danger"></i> {{ recipe.total_time }} mins</span>
+                        <span><i class="fa-solid fa-users me-1 text-info"></i> Serves {{ recipe.servings }}</span>
+                        <span><i class="fa-solid fa-fire text-warning me-1"></i> {{ recipe.nutrition_dict.calories }} kcal</span>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3 pt-2">
+                        <a href="{{ url_for('view_recipe', recipe_id=recipe.id) }}" class="btn btn-danger btn-sm flex-grow-1 rounded-pill fw-semibold" style="background-color: var(--primary-color); border:none;">
+                            Cook Recipe <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                        <form action="{{ url_for('toggle_favourite', recipe_id=recipe.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="Remove">
+                                <i class="fa-solid fa-trash-can text-danger"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5 my-5 bg-white rounded-4 border shadow-sm">
+        <div class="stat-pill-icon mx-auto mb-3" style="width: 70px; height: 70px; font-size: 2rem;">
+            <i class="fa-regular fa-heart text-danger"></i>
+        </div>
+        <h4 class="fw-bold">No Favourite Recipes Yet</h4>
+        <p class="text-muted col-md-6 mx-auto mb-4">
+            You haven't saved any recipes to your favourites list yet. Explore popular recipes or ask Gemini AI to create one, then click the heart icon to save it here.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('index') }}" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold" style="background-color: var(--primary-color); border:none;">
+                <i class="fa-solid fa-compass me-1"></i> Browse Recipes
+            </a>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#quickSearchModal">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Recipe Search
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
